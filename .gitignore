@@ -1,0 +1,45 @@
+# Dependencies & build output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python reference repo (separate clone with its own .git)
+TSNet/
+
+# TSNET-TS generated example outputs
+TSNET-TS/examples/results/*.json
+
+# EPANET/Hammer generated outputs
+TSNET-TS/examples/networks/**/*_hammer/
+*.wtg
+*.wtg.*
+*.hmr
+*.hof
+*.hut
+*.rpc
+
+# Nested lockfiles (use root bun.lock only)
+React-TS/bun.lock
+React-TS/package-lock.json
+TSNET-TS/package-lock.json

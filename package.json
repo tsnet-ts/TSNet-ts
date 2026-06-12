@@ -1,0 +1,21 @@
+{
+  "name": "ts-workspace",
+  "private": true,
+  "workspaces": [
+    "React-TS",
+    "TSNET-TS"
+  ],
+  "scripts": {
+    "build": "bun run --cwd TSNET-TS build && bun run --cwd React-TS build",
+    "build:pages": "VITE_BASE_PATH=/TSNet-ts/ bun run --cwd React-TS build",
+    "dev": "bun run --cwd React-TS dev",
+    "test": "bun run --cwd TSNET-TS test",
+    "typecheck": "bun run --cwd TSNET-TS typecheck"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsnet-ts/TSNet-ts.git"
+  },
+  "author": "tsnet-ts <tsnetts@gmail.com>",
+  "license": "UNLICENSED"
+}

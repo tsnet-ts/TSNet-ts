@@ -1,0 +1,64 @@
+{
+  "name": "@tsnet-ts/ts-net",
+  "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "TypeScript transient hydraulic network simulation library.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./src": {
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "keywords": [
+    "hydraulics",
+    "water-network",
+    "transient",
+    "simulation",
+    "epanet",
+    "moc",
+    "water-distribution",
+    "tsnet"
+  ],
+  "author": "tsnet-ts <tsnetts@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsnet-ts/TSNet-ts.git",
+    "directory": "TSNET-TS"
+  },
+  "bugs": {
+    "url": "https://github.com/tsnet-ts/TSNet-ts/issues"
+  },
+  "homepage": "https://github.com/tsnet-ts/TSNet-ts/tree/main/TSNET-TS#readme",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
+  },
+  "dependencies": {
+    "epanet-js": "^0.8.0",
+    "numpy-ts": "^1.3.2"
+  }
+}
