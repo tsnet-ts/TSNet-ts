@@ -2,6 +2,8 @@
 
 TypeScript library for **transient hydraulic simulation** of water distribution networks using the Method of Characteristics (MOC).
 
+**Live demo:** [tsnet-ts.github.io/TSNet-ts](https://tsnet-ts.github.io/TSNet-ts/)
+
 This project is a TypeScript port of [TSNet](https://github.com/glorialulu/TSNet), maintaining structural parity with the original Python implementation.
 
 ## Features
