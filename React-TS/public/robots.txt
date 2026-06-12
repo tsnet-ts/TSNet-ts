@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tsnet-ts.github.io/TSNet-ts/sitemap.xml

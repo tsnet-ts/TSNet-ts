@@ -176,7 +176,7 @@ export function FileUpload() {
       <div className="h-full w-full overflow-y-auto bg-[#f6f7f9]">
         {step === 'choice' ? (
           /* ── Landing: GIF left · copy right (epanet-js style) ── */
-          <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
+          <main className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
             <div className="mb-6 flex items-center justify-between lg:mb-8">
               <div className="flex items-center gap-2.5">
                 <AppLogo className="size-8" />
@@ -202,16 +202,17 @@ export function FileUpload() {
               {/* Right — copy & CTAs */}
               <div className="order-2 flex max-w-xl flex-col justify-center lg:order-2 lg:max-w-none">
                 <p className="mb-3 text-sm font-semibold tracking-tight text-foreground">
-                  TSNet-TS
+                  TSNet-TS · tsnet-ts
                 </p>
                 <h1 className="text-3xl font-bold leading-[1.12] tracking-tight sm:text-4xl lg:text-[2.65rem]">
-                  From EPANET model to water hammer results —{' '}
+                  Water hammer &amp; hydraulic transient simulation —{' '}
                   <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-500 bg-clip-text text-transparent">
-                    computed entirely in your browser.
+                    from EPANET model to results in your browser.
                   </span>
                 </h1>
                 <p className="mt-5 text-base leading-relaxed text-muted-foreground lg:text-[1.05rem]">
-                  A TypeScript library for MOC transient simulation — a port of the original{' '}
+                  TSNet-TS is a free online transient simulation tool for water hammer and pressure
+                  surge analysis — using the Method of Characteristics (MOC), a TypeScript port of{' '}
                   <a
                     href="https://github.com/glorialulu/TSNet"
                     target="_blank"
@@ -220,9 +221,10 @@ export function FileUpload() {
                   >
                     TSNet
                   </a>{' '}
-                  (Python). Run valve closures, pump trips, and bursts on EPANET{' '}
-                  <code className="rounded bg-white px-1.5 py-0.5 text-sm shadow-sm">.inp</code> files
-                  entirely in your browser — no Python, no backend.
+                  (Python). Run pipeline transient simulation for valve closures, pump trips, pipe
+                  bursts, and surge tanks on EPANET{' '}
+                  <code className="rounded bg-white px-1.5 py-0.5 text-sm shadow-sm">.inp</code>{' '}
+                  networks — no install, no backend.
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -244,7 +246,25 @@ export function FileUpload() {
                 </div>
               </div>
             </div>
-          </div>
+
+            <footer className="mt-10 border-t border-border/60 pt-6 text-sm leading-relaxed text-muted-foreground lg:mt-12">
+              <p>
+                TSNet-TS helps engineers and researchers study water hammer, pressure surges,
+                pipeline transients, and unsteady flow in drinking-water distribution networks.
+                Use it as an online water hammer calculator for quick what-if analysis. Built on{' '}
+                <a
+                  href="https://www.npmjs.com/package/@tsnet-ts/ts-net"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-indigo-600"
+                >
+                  @tsnet-ts/ts-net
+                </a>
+                , the open-source TypeScript library for MOC-based transient simulation compatible
+                with EPANET input files.
+              </p>
+            </footer>
+          </main>
         ) : (
           /* ── Wizard steps ── */
           <div className="mx-auto max-w-3xl px-6 py-10 lg:px-8">

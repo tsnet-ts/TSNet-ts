@@ -4,9 +4,85 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TSNet-TS</title>
+    <title>TSNet-TS — Online Water Hammer &amp; Transient Simulation</title>
+    <meta
+      name="description"
+      content="Free online water hammer calculator and hydraulic transient simulator. TSNet-TS (tsnet-ts) runs MOC pressure surge and pipeline transient simulation on EPANET .inp files in your browser — valve closure, pump trip, and pipe burst analysis."
+    />
+    <meta
+      name="keywords"
+      content="TSNet, TSNet-TS, tsnet-ts, water hammer, water hammer calculator, online water hammer, water transient, hydraulic transient, transient simulation, pressure surge, pipeline transients, surge analysis, MOC simulation, method of characteristics, EPANET, pipe burst, pump trip, valve closure, water distribution network"
+    />
+    <meta name="author" content="tsnet-ts" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://tsnet-ts.github.io/TSNet-ts/" />
+    <meta name="theme-color" content="#4f46e5" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TSNet-TS" />
+    <meta property="og:title" content="TSNet-TS — Online Water Hammer &amp; Transient Simulation" />
+    <meta
+      property="og:description"
+      content="Online water hammer and pressure surge simulator. Run MOC transient simulation on EPANET .inp networks in your browser — no install required."
+    />
+    <meta property="og:url" content="https://tsnet-ts.github.io/TSNet-ts/" />
+    <meta property="og:image" content="https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg" />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TSNet-TS — Online Water Hammer &amp; Transient Simulation" />
+    <meta
+      name="twitter:description"
+      content="Free online transient simulation for water hammer and pressure surges. Upload EPANET .inp files or try example networks."
+    />
+    <meta name="twitter:image" content="https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "TSNet-TS",
+        "alternateName": ["TSNet TS", "tsnet-ts"],
+        "url": "https://tsnet-ts.github.io/TSNet-ts/",
+        "description": "Online water hammer calculator and hydraulic transient simulator using the Method of Characteristics (MOC). Run pressure surge and pipeline transient simulation on EPANET water distribution networks in your browser.",
+        "applicationCategory": "EngineeringApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "softwareVersion": "1.0.1",
+        "keywords": "TSNet, water hammer, water hammer calculator, transient simulation, pressure surge, pipeline transients, hydraulic transient, MOC, EPANET, pipe burst",
+        "screenshot": "https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "tsnet-ts",
+          "url": "https://github.com/tsnet-ts"
+        },
+        "codeRepository": "https://github.com/tsnet-ts/TSNet-ts",
+        "sameAs": [
+          "https://github.com/tsnet-ts/TSNet-ts",
+          "https://www.npmjs.com/package/@tsnet-ts/ts-net"
+        ]
+      }
+    </script>
   </head>
   <body>
+    <noscript>
+      <h1>TSNet-TS — Water Hammer &amp; Hydraulic Transient Simulator</h1>
+      <p>
+        TSNet-TS (tsnet-ts) is a free online water hammer calculator and transient simulation tool
+        for pressure surge and hydraulic transient analysis of water distribution networks. It is a
+        TypeScript port of TSNet that runs Method of Characteristics (MOC) pipeline transient
+        simulation on EPANET .inp files entirely in your browser.
+      </p>
+      <p>
+        Features include valve closure, pump trip, pipe burst, demand pulse, and surge tank scenarios.
+        JavaScript is required to use the interactive simulator.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
