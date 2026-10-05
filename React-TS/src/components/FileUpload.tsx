@@ -233,7 +233,7 @@ export function FileUpload() {
                     onClick={() => setStep('projection')}
                     className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition hover:from-violet-700 hover:to-indigo-700"
                   >
-                    Upload your model
+                    Try your model
                     <FolderUp className="size-4" />
                   </button>
                   <button
@@ -248,7 +248,7 @@ export function FileUpload() {
               </div>
             </div>
 
-            <footer className="mt-10 border-t border-border/60 pt-6 text-sm leading-relaxed text-muted-foreground lg:mt-12">
+            <footer className="mt-auto border-t border-border/60 pt-6 text-sm leading-relaxed text-muted-foreground">
               <p>
                 TSNet-TS helps engineers and researchers study water hammer, pressure surges,
                 pipeline transients, and unsteady flow in drinking-water distribution networks.
