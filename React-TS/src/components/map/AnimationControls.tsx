@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useAnimationStore, useSimulationStore } from '@/store';
 import type { AnimationMetric } from '@/store';
+import { ANIMATION_METRIC_OPTIONS } from '@/lib/result-metrics';
 
 const SPEEDS = [0.25, 0.5, 1, 2, 4];
 
@@ -114,10 +115,11 @@ export function AnimationControls() {
       <select
         value={animationMetric}
         onChange={(e) => setAnimationMetric(e.target.value as AnimationMetric)}
-        className="text-xs border rounded px-1 py-0.5"
+        className="text-xs border rounded px-1 py-0.5 max-w-[11rem]"
       >
-        <option value="headChange">Head</option>
-        <option value="velocity">Velocity</option>
+        {ANIMATION_METRIC_OPTIONS.map((o) => (
+          <option key={o.id} value={o.id}>{o.label}</option>
+        ))}
       </select>
 
       {/* Stop button */}

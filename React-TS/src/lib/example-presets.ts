@@ -32,6 +32,7 @@ export const EXAMPLE_PRESETS: ExamplePreset[] = [
       simulationPeriod: 20,
       dt: null,
       frictionModel: 'steady',
+      demandModel: 'PDD',
     },
     events: [
       {
@@ -54,6 +55,7 @@ export const EXAMPLE_PRESETS: ExamplePreset[] = [
       simulationPeriod: 25,
       dt: 0.01,
       frictionModel: 'steady',
+      demandModel: 'DD',
     },
     events: [
       {
@@ -79,6 +81,7 @@ export const EXAMPLE_PRESETS: ExamplePreset[] = [
       simulationPeriod: 20,
       dt: 0.1,
       frictionModel: 'steady',
+      demandModel: 'DD',
     },
     events: [
       {
@@ -104,6 +107,7 @@ export const EXAMPLE_PRESETS: ExamplePreset[] = [
       simulationPeriod: 10,
       dt: null,
       frictionModel: 'unsteady',
+      demandModel: 'DD',
     },
     events: [
       {
@@ -129,6 +133,7 @@ export const EXAMPLE_PRESETS: ExamplePreset[] = [
       simulationPeriod: 20,
       dt: null,
       frictionModel: 'steady',
+      demandModel: 'PDD',
     },
     events: [
       {
@@ -153,6 +158,7 @@ export const EXAMPLE_PRESETS: ExamplePreset[] = [
       simulationPeriod: 60,
       dt: 0.1,
       frictionModel: 'steady',
+      demandModel: 'DD',
     },
     events: [
       {
@@ -185,6 +191,7 @@ export const EXAMPLE_PRESETS: ExamplePreset[] = [
       simulationPeriod: 20,
       dt: null,
       frictionModel: 'steady',
+      demandModel: 'PDD',
     },
     events: [
       {

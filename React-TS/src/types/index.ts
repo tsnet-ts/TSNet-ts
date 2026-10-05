@@ -127,25 +127,41 @@ export type TransientEvent =
 
 export type FrictionModel = 'steady' | 'quasi-steady' | 'unsteady';
 
+/** Steady-state demand model used by EPANET during initialization. */
+export type DemandModel = 'DD' | 'PDD';
+
 export interface SimulationSettings {
   wavespeed: number;       // m/s
   simulationPeriod: number; // seconds
   dt: number | null;       // time step in seconds, null = auto (max allowed)
   frictionModel: FrictionModel;
+  demandModel: DemandModel;
+}
+
+/** Packed time series transferred from the simulation worker. */
+export type TimeSeries = Float32Array;
+
+export interface NodeSimulationResults {
+  head: TimeSeries;
+  demandDischarge: TimeSeries;
+  emitterDischarge: TimeSeries;
+  waterLevel?: TimeSeries;
+  tankFlow?: TimeSeries;
+}
+
+export interface PipeSimulationResults {
+  startHead: TimeSeries;
+  endHead: TimeSeries;
+  startVelocity: TimeSeries;
+  endVelocity: TimeSeries;
+  startFlow: TimeSeries;
+  endFlow: TimeSeries;
 }
 
 export interface SimulationResults {
-  time: number[];
-  nodes: Record<string, {
-    head: number[];
-    velocity?: number[];
-  }>;
-  pipes: Record<string, {
-    startHead: number[];
-    endHead: number[];
-    startVelocity: number[];
-    endVelocity: number[];
-  }>;
+  time: TimeSeries;
+  nodes: Record<string, NodeSimulationResults>;
+  pipes: Record<string, PipeSimulationResults>;
 }
 
 export type SimulationStatus = 'idle' | 'running' | 'success' | 'error';

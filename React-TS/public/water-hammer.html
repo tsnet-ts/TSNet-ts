@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Water Hammer &amp; Hydraulic Transient Simulation — TSNet-TS</title>
+    <meta
+      name="description"
+      content="What water hammer and hydraulic transients are, how the Method of Characteristics (MOC) simulates pressure surge, and how to run online transient simulation on EPANET .inp files in TSNet-TS."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://tsnet-ts.github.io/TSNet-ts/water-hammer.html" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./docs.css" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Water Hammer &amp; Hydraulic Transient Simulation — TSNet-TS" />
+    <meta
+      property="og:description"
+      content="Learn water hammer, pressure surge, and MOC transient simulation. Run EPANET networks in the browser with TSNet-TS."
+    />
+    <meta property="og:url" content="https://tsnet-ts.github.io/TSNet-ts/water-hammer.html" />
+    <meta property="og:image" content="https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./">
+        <img src="./logo.svg" alt="" width="32" height="32" />
+        TSNet-TS
+      </a>
+      <nav>
+        <a href="./">Simulator</a>
+        <a href="./about.html">About</a>
+      </nav>
+    </header>
+    <main>
+      <h1>Water hammer and hydraulic transient simulation</h1>
+      <p>
+        Water hammer is a pressure surge that travels through a pressurized pipe when flow changes
+        suddenly — for example when a valve closes, a pump trips, or a pipe bursts. The same physics
+        is often called a hydraulic transient or pipeline transient. Rapid events can raise or drop
+        pressure enough to damage pipes, collapse linings, or contaminate a water distribution network.
+      </p>
+      <p>
+        Engineers study these events with transient simulation rather than steady-state EPANET alone.
+        Steady models assume demands and flows have already settled. A water hammer calculator has to
+        step through time and track pressure waves.
+      </p>
+
+      <h2>Method of Characteristics (MOC)</h2>
+      <p>
+        TSNet-TS uses the Method of Characteristics, a standard numerical scheme for unsteady pipe
+        flow. It discretizes each pipe so that pressure and velocity are updated along characteristic
+        lines at a time step limited by wavespeed and pipe length. That is the same family of methods
+        used in research codes such as
+        <a href="https://github.com/glorialulu/TSNet">TSNet</a> (Python).
+      </p>
+
+      <h2>EPANET networks in the browser</h2>
+      <p>
+        Upload an EPANET <code>.inp</code> model or try a built-in example. Simulation runs locally
+        in your browser: valve closure, pump trip, pipe burst, leak, demand pulse, and surge tank
+        protection. Steady-state initialization can be demand-driven (DD) or pressure-dependent (PDD).
+      </p>
+      <p>
+        <a class="cta" href="./">Open the online transient simulator</a>
+      </p>
+
+      <h2>When to run a transient model</h2>
+      <ul>
+        <li>Valve closure or opening that is fast compared with the pipe period 2L/a</li>
+        <li>Pump shutdown or startup and the resulting downsurge or upsurge</li>
+        <li>Pipe burst or background leak where pressure-dependent outflow matters</li>
+        <li>Checking whether a surge tank reduces water-hammer peaks</li>
+      </ul>
+    </main>
+    <footer>
+      <p><a href="./">TSNet-TS simulator</a> · <a href="./about.html">About TSNet-TS</a></p>
+      <p>Online water hammer and hydraulic transient simulation for EPANET water networks.</p>
+    </footer>
+  </body>
+</html>

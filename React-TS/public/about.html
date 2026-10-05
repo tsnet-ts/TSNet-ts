@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About TSNet-TS — Browser Water Transient Simulation</title>
+    <meta
+      name="description"
+      content="TSNet-TS is a TypeScript port of TSNet for online water hammer and hydraulic transient simulation on EPANET .inp files. MIT library @tsnet-ts/ts-net plus a free browser demo."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://tsnet-ts.github.io/TSNet-ts/about.html" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./docs.css" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="About TSNet-TS — Browser Water Transient Simulation" />
+    <meta
+      property="og:description"
+      content="TypeScript port of TSNet: MOC transients, EPANET networks, and an online water hammer demo."
+    />
+    <meta property="og:url" content="https://tsnet-ts.github.io/TSNet-ts/about.html" />
+    <meta property="og:image" content="https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./">
+        <img src="./logo.svg" alt="" width="32" height="32" />
+        TSNet-TS
+      </a>
+      <nav>
+        <a href="./">Simulator</a>
+        <a href="./water-hammer.html">Water hammer</a>
+      </nav>
+    </header>
+    <main>
+      <h1>About TSNet-TS</h1>
+      <p>
+        TSNet-TS is an online water hammer and hydraulic transient simulator. It runs the Method of
+        Characteristics on water distribution networks described by EPANET <code>.inp</code> files,
+        entirely in the browser — no server-side hydraulic engine for the demo.
+      </p>
+      <p>
+        The project is a TypeScript port of
+        <a href="https://github.com/glorialulu/TSNet">TSNet</a> by Xing and Sela. The original Python
+        package is described in:
+      </p>
+      <p>
+        Xing, L., &amp; Sela, L. (2020). Transient simulations in water distribution networks: TSNet
+        python package. <em>Advances in Engineering Software</em>, 149, 102884.
+        <a href="https://doi.org/10.1016/j.advengsoft.2020.102884">doi:10.1016/j.advengsoft.2020.102884</a>
+      </p>
+      <p>
+        Please cite that paper if you use this work in research. Questions or commercial licensing
+        for the web app:
+        <a href="mailto:tsnetts@gmail.com">tsnetts@gmail.com</a>.
+      </p>
+
+      <h2>Library and web app</h2>
+      <ul>
+        <li>
+          <a href="https://www.npmjs.com/package/@tsnet-ts/ts-net"><code>@tsnet-ts/ts-net</code></a>
+          — MIT-licensed TypeScript engine (npm)
+        </li>
+        <li>
+          <a href="https://github.com/tsnet-ts/TSNet-ts">github.com/tsnet-ts/TSNet-ts</a>
+          — source for the library and this demo
+        </li>
+        <li>
+          This website — free noncommercial online transient simulation (PolyForm Noncommercial)
+        </li>
+      </ul>
+
+      <h2>What you can simulate</h2>
+      <p>
+        Valve closure and opening, pump shutdown and startup, pipe burst, background leak, demand
+        pulse, and surge tanks. Friction can be steady, quasi-steady, or unsteady. Steady-state
+        start-up uses EPANET demand-driven (DD) or pressure-dependent demand (PDD).
+      </p>
+      <p>
+        <a class="cta" href="./">Run a transient in the browser</a>
+      </p>
+    </main>
+    <footer>
+      <p><a href="./">TSNet-TS simulator</a> · <a href="./water-hammer.html">Water hammer</a></p>
+    </footer>
+  </body>
+</html>

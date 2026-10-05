@@ -106,20 +106,30 @@ export async function runSimulation(
           console.log(`${LOG_PREFIX} progress ${msg.value}% — ${msg.stage}`);
           onProgress(msg.value, msg.stage);
           break;
-        case 'result':
+        case 'result': {
           console.log(`${LOG_PREFIX} runSimulation — success`, {
             timeSteps: msg.result.time?.length,
             nodes: Object.keys(msg.result.nodes ?? {}).length,
             pipes: Object.keys(msg.result.pipes ?? {}).length,
           });
           console.groupEnd();
+          onProgress(97, 'Loading results…');
           cleanup();
-          resolve({
+          const result: SimulationResults = {
             time: msg.result.time,
             nodes: msg.result.nodes,
             pipes: msg.result.pipes,
+          };
+          const yieldFrame = () => new Promise<void>((done) => {
+            if (typeof requestAnimationFrame === 'function') {
+              requestAnimationFrame(() => done());
+            } else {
+              setTimeout(done, 0);
+            }
           });
+          void yieldFrame().then(() => resolve(result));
           break;
+        }
         case 'error': {
           const errMsg = msg.error as string;
           const stack = msg.stack as string | undefined;
@@ -169,6 +179,7 @@ export async function runSimulation(
           simulationPeriod: settings.simulationPeriod,
           dt: settings.dt,
           frictionModel: settings.frictionModel,
+          demandModel: settings.demandModel,
         },
       },
     });

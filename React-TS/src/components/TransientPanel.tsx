@@ -10,10 +10,23 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { runSimulation } from '@/services/simulation';
-import type { TransientEvent, ValveEvent, PumpEvent, BurstEvent, LeakEvent, DemandPulseEvent, SurgeTankEvent, NetworkData } from '@/types';
+import type { TransientEvent, ValveEvent, PumpEvent, BurstEvent, LeakEvent, DemandPulseEvent, SurgeTankEvent, NetworkData, DemandModel } from '@/types';
 
 type Tab = 'add-event' | 'events' | 'settings';
 type AddStep = 'element' | 'event-config';
+
+function waitAnimationFrames(count: number): Promise<void> {
+  return new Promise((resolve) => {
+    const step = (left: number) => {
+      if (left <= 0) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(() => step(left - 1));
+    };
+    requestAnimationFrame(() => step(count - 1));
+  });
+}
 
 export function TransientPanel() {
   const network = useNetworkStore((s) => s.network);
@@ -37,6 +50,7 @@ export function TransientPanel() {
   const selectElement = useUIStore((s) => s.selectElement);
   const setSidebarMode = useUIStore((s) => s.setSidebarMode);
   const zoomToElement = useUIStore((s) => s.zoomToElement);
+  const setPlottedElements = useUIStore((s) => s.setPlottedElements);
 
   const [tab, setTab] = useState<Tab>(() => events.length > 0 ? 'settings' : 'add-event');
   const [addStep, setAddStep] = useState<AddStep>('element');
@@ -172,11 +186,15 @@ export function TransientPanel() {
     setIsRunning(true);
     setStatus('running');
     setProgress(0, 'Starting...');
+    setPlottedElements([]);
     console.log('[TSNet Debug] Run Simulation clicked', { events, settings });
     try {
       const results = await runSimulation(rawInpContent, events, settings, (p, stage) => setProgress(p, stage));
       setResults(results);
+      setProgress(99, 'Preparing view…');
+      await waitAnimationFrames(2);
       setSidebarMode('network');
+      setStatus('success');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Simulation failed';
       console.error('[TSNet Debug] Simulation failed:', err);
@@ -495,6 +513,27 @@ export function TransientPanel() {
               />
 
               <div className="space-y-1.5">
+                <Label className="text-[11px]">Demand Model</Label>
+                <Select
+                  value={settings.demandModel}
+                  onValueChange={(v) => updateSettings({ demandModel: v as DemandModel })}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DD">DD — Demand driven</SelectItem>
+                    <SelectItem value="PDD">PDD — Pressure dependent</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  {settings.demandModel === 'PDD'
+                    ? 'Demand drops when pressure is low. Better for leaks and bursts.'
+                    : 'Full assigned demand regardless of pressure.'}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
                 <Label className="text-[11px]">Friction Model</Label>
                 <Select
                   value={settings.frictionModel}
@@ -586,7 +625,12 @@ export function TransientPanel() {
                 variant="secondary"
                 size="sm"
                 className="w-full gap-1.5"
-                onClick={() => downloadSimulationResults(results, fileName ?? undefined)}
+                onClick={() => downloadSimulationResults(results, {
+                  fileName: fileName ?? undefined,
+                  network,
+                  settings,
+                  events,
+                })}
               >
                 <Download className="size-3.5" />
                 Download Results (JSON)

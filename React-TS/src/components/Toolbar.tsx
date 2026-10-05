@@ -20,10 +20,17 @@ export function Toolbar() {
   const progressStage = useSimulationStore((s) => s.progressStage);
   const error = useSimulationStore((s) => s.error);
   const results = useSimulationStore((s) => s.results);
+  const settings = useSimulationStore((s) => s.settings);
+  const events = useSimulationStore((s) => s.events);
 
   const handleDownloadResults = () => {
     if (!results) return;
-    downloadSimulationResults(results, fileName ?? undefined);
+    downloadSimulationResults(results, {
+      fileName: fileName ?? undefined,
+      network,
+      settings,
+      events,
+    });
   };
 
   const handleNewFile = () => {

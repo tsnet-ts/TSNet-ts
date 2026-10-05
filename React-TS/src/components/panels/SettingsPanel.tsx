@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { FrictionModel } from '@/types';
+import type { DemandModel, FrictionModel } from '@/types';
 
 export function SettingsPanel() {
   const settings = useSimulationStore((s) => s.settings);
@@ -51,6 +51,11 @@ export function SettingsPanel() {
         setProgress(p, stage);
       });
       setResults(results);
+      setProgress(99, 'Preparing view…');
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
+      setStatus('success');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Simulation failed');
     }
@@ -103,6 +108,27 @@ export function SettingsPanel() {
               )}
             </p>
           )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs">Demand Model</Label>
+          <Select
+            value={settings.demandModel}
+            onValueChange={(v) => updateSettings({ demandModel: v as DemandModel })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DD">DD — Demand driven</SelectItem>
+              <SelectItem value="PDD">PDD — Pressure dependent</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {settings.demandModel === 'PDD'
+              ? 'Junction demand drops when pressure is low. Better for leaks and bursts.'
+              : 'Junctions take full assigned demand regardless of pressure.'}
+          </p>
         </div>
 
         <div className="space-y-1.5">

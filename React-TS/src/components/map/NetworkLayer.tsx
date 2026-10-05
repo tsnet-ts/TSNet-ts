@@ -8,7 +8,6 @@ import { useSimulationStore } from '@/store';
 import { ELEMENT_COLORS, getIconSvgString } from '@/components/icons/network-elements';
 import { buildColorMap, computeColorRange } from '@/lib/color-scale';
 import type { NetworkNode, NetworkLink } from '@/types';
-import type { AnimationMetric } from '@/store';
 
 function createElementIcon(type: NetworkNode['type'] | NetworkLink['type'], isSelected: boolean, greyed = false) {
   const size = isSelected ? 20 : 16;
@@ -73,7 +72,14 @@ function computeMidpoint(positions: [number, number][]): [number, number] {
 export function NetworkLayer() {
   const network = useNetworkStore((s) => s.network);
   const selectedElementId = useUIStore((s) => s.selectedElementId);
+  const selectedElementType = useUIStore((s) => s.selectedElementType);
   const selectElement = useUIStore((s) => s.selectElement);
+  const addPlottedElement = useUIStore((s) => s.addPlottedElement);
+
+  const pickElement = (id: string, type: NetworkNode['type'] | NetworkLink['type']) => {
+    selectElement(id, type);
+    addPlottedElement({ id, type });
+  };
   const animationActive = useAnimationStore((s) => s.animationActive);
   const currentIndex = useAnimationStore((s) => s.currentIndex);
   const animationMetric = useAnimationStore((s) => s.animationMetric);
@@ -98,9 +104,9 @@ export function NetworkLayer() {
   // Pre-compute color map when animation is active
   const colorMap = useMemo(() => {
     if (!animationActive || !results) return null;
-    const range = computeColorRange(results, animationMetric);
-    return buildColorMap(results, animationMetric, range);
-  }, [animationActive, results, animationMetric]);
+    const range = computeColorRange(results, animationMetric, network);
+    return buildColorMap(results, animationMetric, range, network);
+  }, [animationActive, results, animationMetric, network]);
 
   const links = useMemo(() => {
     if (!network) return [];
@@ -135,7 +141,7 @@ export function NetworkLayer() {
     <>
       {/* Links */}
       {links.map((link) => {
-        const isSelected = !animationActive && link.id === selectedElementId;
+        const isSelected = !animationActive && link.id === selectedElementId && link.type === selectedElementType;
         const animColor = animationActive && colorMap ? colorMap.get(link.id)?.[currentIndex] : null;
         // Grey out valve/pump lines during animation (no sim data for them)
         const greyedLine = animationActive && link.type !== 'pipe' && !animColor;
@@ -149,7 +155,7 @@ export function NetworkLayer() {
               opacity: greyedLine ? 0.4 : 0.8,
             }}
             eventHandlers={{
-              click: () => selectElement(link.id, link.type),
+              click: () => pickElement(link.id, link.type),
             }}
             interactive={true}
           />
@@ -159,14 +165,14 @@ export function NetworkLayer() {
       {/* Link midpoint icons for valves and pumps */}
       {links.filter((l) => l.type !== 'pipe').map((link) => {
         const midPos = computeMidpoint(link.positions);
-        const isSelected = !animationActive && link.id === selectedElementId;
+        const isSelected = !animationActive && link.id === selectedElementId && link.type === selectedElementType;
         const icon = createElementIcon(link.type, isSelected, animationActive);
         return (
           <Marker
             key={`icon-${link.id}-${animationActive ? 'anim' : 'normal'}-${isSelected ? 's' : 'u'}`}
             position={midPos}
             icon={icon}
-            eventHandlers={{ click: () => selectElement(link.id, link.type) }}
+            eventHandlers={{ click: () => pickElement(link.id, link.type) }}
           />
         );
       })}
@@ -187,7 +193,7 @@ export function NetworkLayer() {
 
       {/* Nodes */}
       {nodes.map((node) => {
-        const isSelected = !animationActive && node.id === selectedElementId;
+        const isSelected = !animationActive && node.id === selectedElementId && node.type === selectedElementType;
 
         if (node.type === 'reservoir') {
           return (
@@ -195,7 +201,7 @@ export function NetworkLayer() {
               key={node.id}
               position={[node.coordinates.y, node.coordinates.x]}
               icon={createElementIcon('reservoir', isSelected)}
-              eventHandlers={{ click: () => selectElement(node.id, node.type) }}
+              eventHandlers={{ click: () => pickElement(node.id, node.type) }}
             >
               <Tooltip permanent direction="top" offset={[0, -12]}>
                 <span className="text-xs font-medium">{node.name}</span>
@@ -210,7 +216,7 @@ export function NetworkLayer() {
               key={node.id}
               position={[node.coordinates.y, node.coordinates.x]}
               icon={createElementIcon('tank', isSelected)}
-              eventHandlers={{ click: () => selectElement(node.id, node.type) }}
+              eventHandlers={{ click: () => pickElement(node.id, node.type) }}
             >
               <Tooltip permanent direction="top" offset={[0, -8]}>
                 <span className="text-xs font-medium">{node.name}</span>
@@ -236,7 +242,7 @@ export function NetworkLayer() {
               opacity: 1,
             }}
             eventHandlers={{
-              click: () => selectElement(node.id, node.type),
+              click: () => pickElement(node.id, node.type),
             }}
             interactive={true}
           >

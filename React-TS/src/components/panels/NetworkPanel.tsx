@@ -1,14 +1,35 @@
+import { useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 import { useNetworkStore } from '@/store';
 import { useUIStore } from '@/store';
+import { useSimulationStore } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { getNetworkIcon } from '@/components/icons/network-elements';
+import { cn } from '@/lib/utils';
+import type { NetworkLink, NetworkNode } from '@/types';
+
+const NODE_TYPES = new Set<string>(['junction', 'reservoir', 'tank']);
+const LINK_TYPES = new Set<string>(['pipe', 'valve', 'pump']);
+const LIST_CAP = 40;
+
+type SearchableElement = {
+  id: string;
+  name: string;
+  type: NetworkNode['type'] | NetworkLink['type'];
+  valveType?: string;
+  pumpType?: string;
+};
 
 export function NetworkPanel() {
   const network = useNetworkStore((s) => s.network);
   const fileName = useNetworkStore((s) => s.fileName);
   const selectedElementId = useUIStore((s) => s.selectedElementId);
+  const selectedElementType = useUIStore((s) => s.selectedElementType);
+  const results = useSimulationStore((s) => s.results);
+  const status = useSimulationStore((s) => s.status);
 
   if (!network) return null;
 
@@ -32,8 +53,17 @@ export function NetworkPanel() {
   const valves = [...network.links.values()].filter((l) => l.type === 'valve');
   const pumps = [...network.links.values()].filter((l) => l.type === 'pump');
 
-  const selectedNode = selectedElementId ? network.nodes.get(selectedElementId) : null;
-  const selectedLink = selectedElementId ? network.links.get(selectedElementId) : null;
+  const selectedNode =
+    selectedElementId && selectedElementType && NODE_TYPES.has(selectedElementType)
+      ? (network.nodes.get(selectedElementId) ?? null)
+      : null;
+  const selectedLink =
+    selectedElementId && selectedElementType && LINK_TYPES.has(selectedElementType)
+      ? (network.links.get(selectedElementId) ?? null)
+      : null;
+  const showSelected =
+    (selectedNode && selectedNode.type === selectedElementType) ||
+    (selectedLink && selectedLink.type === selectedElementType);
 
   return (
     <div className="p-4 space-y-4">
@@ -63,8 +93,12 @@ export function NetworkPanel() {
         </div>
       </div>
 
+      {status === 'success' && results && (
+        <ElementSearch />
+      )}
+
       {/* Selected element details */}
-      {(selectedNode || selectedLink) && (
+      {showSelected && (
         <div>
           <Separator className="mb-4" />
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -72,7 +106,7 @@ export function NetworkPanel() {
           </h3>
           <Card className="border-primary/20 bg-primary/5 py-3 gap-2">
             <CardContent className="space-y-3">
-              {selectedNode && (
+              {selectedNode && selectedNode.type === selectedElementType && (
                 <>
                   <div className="flex items-center gap-2">
                     {(() => { const Icon = getNetworkIcon(selectedNode.type); return <Icon size={16} />; })()}
@@ -101,7 +135,7 @@ export function NetworkPanel() {
                   </div>
                 </>
               )}
-              {selectedLink && (
+              {selectedLink && selectedLink.type === selectedElementType && (
                 <>
                   <div className="flex items-center gap-2">
                     {(() => { const Icon = getNetworkIcon(selectedLink.type); return <Icon size={16} />; })()}
@@ -150,6 +184,104 @@ export function NetworkPanel() {
   );
 }
 
+function matchesQuery(el: SearchableElement, q: string): boolean {
+  return (
+    el.id.toLowerCase().includes(q) ||
+    el.name.toLowerCase().includes(q) ||
+    el.type.toLowerCase().includes(q) ||
+    (el.valveType?.toLowerCase().includes(q) ?? false) ||
+    (el.pumpType?.toLowerCase().includes(q) ?? false)
+  );
+}
+
+function ElementSearch() {
+  const network = useNetworkStore((s) => s.network);
+  const selectedElementId = useUIStore((s) => s.selectedElementId);
+  const selectedElementType = useUIStore((s) => s.selectedElementType);
+  const selectElement = useUIStore((s) => s.selectElement);
+  const addPlottedElement = useUIStore((s) => s.addPlottedElement);
+  const zoomToElement = useUIStore((s) => s.zoomToElement);
+  const [query, setQuery] = useState('');
+
+  const elements = useMemo<SearchableElement[]>(() => {
+    if (!network) return [];
+    const items: SearchableElement[] = [];
+    for (const node of network.nodes.values()) {
+      items.push({ id: node.id, name: node.name, type: node.type });
+    }
+    for (const link of network.links.values()) {
+      items.push({
+        id: link.id,
+        name: link.name,
+        type: link.type,
+        valveType: link.valveType,
+        pumpType: link.pumpType,
+      });
+    }
+    return items;
+  }, [network]);
+
+  const matching = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return elements;
+    return elements.filter((el) => matchesQuery(el, q));
+  }, [elements, query]);
+
+  const visible = matching.slice(0, LIST_CAP);
+
+  return (
+    <div>
+      <Separator className="mb-4" />
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        Find element
+      </h3>
+      <div className="relative mb-2">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search nodes, pipes, valves, pumps…"
+          className="h-8 pl-8 text-sm"
+          aria-label="Search nodes, pipes, valves, and pumps"
+        />
+      </div>
+      <p className="text-xs text-muted-foreground mb-2">
+        {matching.length} matching
+      </p>
+      {visible.length === 0 ? (
+        <p className="text-xs text-muted-foreground py-2">No matching elements</p>
+      ) : (
+        <div className="max-h-56 overflow-auto rounded-md border">
+          {visible.map((el) => {
+            const Icon = getNetworkIcon(el.type);
+            const isSelected = el.id === selectedElementId && el.type === selectedElementType;
+            return (
+              <button
+                key={`${el.type}-${el.id}`}
+                type="button"
+                className={cn(
+                  'flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm hover:bg-accent',
+                  isSelected && 'bg-primary/10',
+                )}
+                onClick={() => {
+                  selectElement(el.id, el.type);
+                  addPlottedElement({ id: el.id, type: el.type });
+                  zoomToElement(el.id);
+                }}
+              >
+                <Icon size={14} />
+                <span className="font-medium truncate">{el.name}</span>
+                <Badge variant="secondary" className="ml-auto">{el.type}</Badge>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AttrRow({ label, value, unit }: { label: string; value?: string | number | null; unit?: string }) {
   if (value === undefined || value === null) return null;
   return (
@@ -164,7 +296,7 @@ function AttrRow({ label, value, unit }: { label: string; value?: string | numbe
 }
 
 function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
-  const Icon = getNetworkIcon(icon as any);
+  const Icon = getNetworkIcon(icon as NetworkNode['type'] | NetworkLink['type']);
   return (
     <div className="flex items-center gap-2 rounded-lg border p-2.5 bg-card">
       <Icon size={14} />

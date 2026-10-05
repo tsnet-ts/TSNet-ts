@@ -26,21 +26,19 @@ function ZoomToElement() {
   const network = useNetworkStore((s) => s.network);
   const zoomToElementId = useUIStore((s) => s.zoomToElementId);
   const zoomToElement = useUIStore((s) => s.zoomToElement);
+  const selectedElementType = useUIStore((s) => s.selectedElementType);
 
   useEffect(() => {
     if (!zoomToElementId || !network) return;
 
-    // Check nodes
-    const node = network.nodes.get(zoomToElementId);
-    if (node) {
-      map.flyTo([node.coordinates.y, node.coordinates.x], 17, { duration: 0.5 });
-      zoomToElement(null);
-      return;
-    }
+    const isLinkType =
+      selectedElementType === 'pipe' ||
+      selectedElementType === 'valve' ||
+      selectedElementType === 'pump';
 
-    // Check links — zoom to midpoint
-    const link = network.links.get(zoomToElementId);
-    if (link) {
+    const flyToLink = () => {
+      const link = network.links.get(zoomToElementId);
+      if (!link) return false;
       const start = network.nodes.get(link.startNodeId);
       const end = network.nodes.get(link.endNodeId);
       if (start && end) {
@@ -48,9 +46,23 @@ function ZoomToElement() {
         const midX = (start.coordinates.x + end.coordinates.x) / 2;
         map.flyTo([midY, midX], 17, { duration: 0.5 });
       }
-      zoomToElement(null);
+      return true;
+    };
+
+    const flyToNode = () => {
+      const node = network.nodes.get(zoomToElementId);
+      if (!node) return false;
+      map.flyTo([node.coordinates.y, node.coordinates.x], 17, { duration: 0.5 });
+      return true;
+    };
+
+    if (isLinkType) {
+      if (!flyToLink()) flyToNode();
+    } else if (!flyToNode()) {
+      flyToLink();
     }
-  }, [zoomToElementId, network, map, zoomToElement]);
+    zoomToElement(null);
+  }, [zoomToElementId, network, map, zoomToElement, selectedElementType]);
 
   return null;
 }

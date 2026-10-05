@@ -14,8 +14,32 @@ function postProgress(value: number, stage: string): void {
   self.postMessage({ type: 'progress', value, stage });
 }
 
+function collectBuffers(result: WorkerSimulationResults): ArrayBuffer[] {
+  const seen = new Set<ArrayBuffer>();
+  const add = (series?: Float32Array) => {
+    if (series && !seen.has(series.buffer)) seen.add(series.buffer);
+  };
+  add(result.time);
+  for (const node of Object.values(result.nodes)) {
+    add(node.head);
+    add(node.demandDischarge);
+    add(node.emitterDischarge);
+    add(node.waterLevel);
+    add(node.tankFlow);
+  }
+  for (const pipe of Object.values(result.pipes)) {
+    add(pipe.startHead);
+    add(pipe.endHead);
+    add(pipe.startVelocity);
+    add(pipe.endVelocity);
+    add(pipe.startFlow);
+    add(pipe.endFlow);
+  }
+  return [...seen];
+}
+
 function postResult(result: WorkerSimulationResults): void {
-  self.postMessage({ type: 'result', result });
+  self.postMessage({ type: 'result', result }, collectBuffers(result));
 }
 
 function postError(stage: string, err: unknown): void {
@@ -51,6 +75,7 @@ export interface WorkerSimulationInput {
     simulationPeriod: number;
     dt: number | null;
     frictionModel: 'steady' | 'quasi-steady' | 'unsteady';
+    demandModel?: 'DD' | 'PDD';
   };
 }
 
@@ -64,14 +89,36 @@ export type WorkerTransientEvent =
   | { type: 'demand-pulse'; elementName: string; tc: number; ts: number; tp: number; dp: number }
   | { type: 'surge-tank'; elementName: string; tankType: 'open' | 'closed'; area: number; height?: number; waterLevel?: number };
 
+function packSeries(arr: ArrayLike<number> | undefined | null, n: number): Float32Array {
+  const out = new Float32Array(n);
+  if (arr != null && arr.length > 0) {
+    const len = Math.min(n, arr.length);
+    for (let i = 0; i < len; i++) out[i] = arr[i] as number;
+  }
+  return out;
+}
+
+function optionalSeries(arr: ArrayLike<number> | undefined | null, n: number): Float32Array | undefined {
+  if (arr == null || arr.length === 0) return undefined;
+  return packSeries(arr, n);
+}
+
 export interface WorkerSimulationResults {
-  time: number[];
-  nodes: Record<string, { head: number[] }>;
+  time: Float32Array;
+  nodes: Record<string, {
+    head: Float32Array;
+    demandDischarge: Float32Array;
+    emitterDischarge: Float32Array;
+    waterLevel?: Float32Array;
+    tankFlow?: Float32Array;
+  }>;
   pipes: Record<string, {
-    startHead: number[];
-    endHead: number[];
-    startVelocity: number[];
-    endVelocity: number[];
+    startHead: Float32Array;
+    endHead: Float32Array;
+    startVelocity: Float32Array;
+    endVelocity: Float32Array;
+    startFlow: Float32Array;
+    endFlow: Float32Array;
   }>;
 }
 
@@ -186,7 +233,9 @@ async function run(input: WorkerSimulationInput): Promise<WorkerSimulationResult
 
   postProgress(25, 'Initializing steady state...');
 
-  tm = await runStage('Initializer', () => Initializer(tm, 0));
+  tm = await runStage('Initializer', () =>
+    Initializer(tm, 0, input.settings.demandModel === 'PDD' ? 'PDD' : 'DD')
+  );
   logModelStats(tm, 'after Initializer');
 
   postProgress(40, 'Running MOC simulation...');
@@ -199,23 +248,34 @@ async function run(input: WorkerSimulationInput): Promise<WorkerSimulationResult
 
   postProgress(90, 'Extracting results...');
 
-  const time = tm.simulation_timestamps;
-
+  const timestamps = tm.simulation_timestamps;
+  const n = timestamps.length;
+  const time = packSeries(timestamps, n);
   const nodes: WorkerSimulationResults['nodes'] = {};
   for (const [name, node] of tm.nodes()) {
-    if (node._head && node._head.length > 0) {
-      nodes[name] = { head: node._head };
-    }
+    if (!node._head || node._head.length === 0) continue;
+    const entry: WorkerSimulationResults['nodes'][string] = {
+      head: packSeries(node._head, n),
+      demandDischarge: packSeries(node.demand_discharge, n),
+      emitterDischarge: packSeries(node.emitter_discharge, n),
+    };
+    const waterLevel = optionalSeries(node.water_level_timeseries, n);
+    const tankFlow = optionalSeries(node.tank_flow_timeseries, n);
+    if (waterLevel) entry.waterLevel = waterLevel;
+    if (tankFlow) entry.tankFlow = tankFlow;
+    nodes[name] = entry;
   }
 
   const pipes: WorkerSimulationResults['pipes'] = {};
   for (const [name, link] of tm.pipes()) {
     const pipe = link as unknown as Pipe;
     pipes[name] = {
-      startHead: pipe.start_node_head,
-      endHead: pipe.end_node_head,
-      startVelocity: pipe.start_node_velocity,
-      endVelocity: pipe.end_node_velocity,
+      startHead: packSeries(pipe.start_node_head, n),
+      endHead: packSeries(pipe.end_node_head, n),
+      startVelocity: packSeries(pipe.start_node_velocity, n),
+      endVelocity: packSeries(pipe.end_node_velocity, n),
+      startFlow: packSeries(pipe.start_node_flowrate, n),
+      endFlow: packSeries(pipe.end_node_flowrate, n),
     };
   }
 
@@ -225,7 +285,7 @@ async function run(input: WorkerSimulationInput): Promise<WorkerSimulationResult
     pipesWithData: Object.keys(pipes).length,
   });
 
-  postProgress(100, 'Complete');
+  postProgress(95, 'Transferring results…');
   return { time, nodes, pipes };
 }
 

@@ -22,6 +22,7 @@ import { AppLogo } from '@/components/icons/AppLogo';
 import { GitHubIcon } from '@/components/icons/GitHubIcon';
 import { cn } from '@/lib/utils';
 import { EXAMPLE_PRESETS } from '@/lib/example-presets';
+import { publicUrl } from '@/lib/public-url';
 import type { TransientEvent } from '@/types';
 
 type Step = 'choice' | 'examples' | 'projection' | 'upload';
@@ -262,6 +263,21 @@ export function FileUpload() {
                 </a>
                 , the open-source TypeScript library for MOC-based transient simulation compatible
                 with EPANET input files.
+              </p>
+              <p className="mt-3">
+                <a
+                  href={publicUrl('water-hammer.html')}
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-indigo-600"
+                >
+                  Water hammer
+                </a>
+                {' · '}
+                <a
+                  href={publicUrl('about.html')}
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-indigo-600"
+                >
+                  About
+                </a>
               </p>
             </footer>
           </main>

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { useAnimationStore, useSimulationStore } from '@/store';
+import { useAnimationStore, useSimulationStore, useNetworkStore } from '@/store';
 import { computeColorRange, valueToColor } from '@/lib/color-scale';
+import { animationMetricLabel } from '@/lib/result-metrics';
 
 const LEGEND_HEIGHT = 200;
 const LEGEND_WIDTH = 20;
@@ -10,11 +11,12 @@ export function ColorLegend() {
   const animationActive = useAnimationStore((s) => s.animationActive);
   const animationMetric = useAnimationStore((s) => s.animationMetric);
   const results = useSimulationStore((s) => s.results);
+  const network = useNetworkStore((s) => s.network);
 
   const range = useMemo(() => {
     if (!results) return null;
-    return computeColorRange(results, animationMetric);
-  }, [results, animationMetric]);
+    return computeColorRange(results, animationMetric, network);
+  }, [results, animationMetric, network]);
 
   if (!animationActive || !range) return null;
 
@@ -28,7 +30,7 @@ export function ColorLegend() {
     stops.push(valueToColor(value, min, max));
   }
 
-  const label = animationMetric === 'headChange' ? 'Head Change (m)' : 'Velocity (m/s)';
+  const label = animationMetricLabel(animationMetric);
 
   return (
     <div className="absolute left-3 top-1/2 -translate-y-1/2 z-[1000] bg-white rounded-lg shadow-lg border border-gray-200 px-2 py-3 flex flex-col items-center select-none">
