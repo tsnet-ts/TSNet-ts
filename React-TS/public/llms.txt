@@ -1,0 +1,28 @@
+# TSNet-TS
+
+> TSNet-TS is a browser tool for water hammer and hydraulic transient simulation on EPANET `.inp` water distribution networks. It uses the Method of Characteristics (MOC). The TypeScript engine `@tsnet-ts/ts-net` is MIT-licensed; the online demo is free for noncommercial use.
+
+## Pages
+
+- [Online simulator](https://tsnet-ts.github.io/TSNet-ts/): upload an EPANET `.inp` file or run an example (valve closure, pump trip, pipe burst, leak, demand pulse, surge tank).
+- [Water hammer explained](https://tsnet-ts.github.io/TSNet-ts/water-hammer.html): what water hammer is, MOC, DD vs PDD, when to run a transient.
+- [About TSNet-TS](https://tsnet-ts.github.io/TSNet-ts/about.html): TypeScript port of TSNet, citation, licenses, contact.
+
+## Source
+
+- [github.com/tsnet-ts/TSNet-ts](https://github.com/tsnet-ts/TSNet-ts)
+- [npm @tsnet-ts/ts-net](https://www.npmjs.com/package/@tsnet-ts/ts-net)
+- Original Python package: [TSNet](https://github.com/glorialulu/TSNet) (Xing & Sela)
+
+## Definitions
+
+- **Water hammer**: a pressure surge in a pressurized pipeline when flow changes suddenly (fast valve closure, pump trip, or pipe burst). Also called a hydraulic transient or pipeline transient.
+- **MOC**: Method of Characteristics. TSNet-TS discretizes each pipe and updates head and velocity along characteristic lines at a time step limited by wavespeed and pipe length.
+- **EPANET `.inp`**: a water network model file. TSNet-TS loads junctions, pipes, pumps, valves, tanks, and reservoirs from EPANET 2.x input.
+- **DD vs PDD**: demand-driven (DD) assumes junctions take their full assigned demand. Pressure-dependent demand (PDD) reduces demand when pressure is low, which is more realistic for leaks and bursts. Both use EPANET for the steady-state start.
+
+## Citation
+
+Xing, L., & Sela, L. (2020). Transient simulations in water distribution networks: TSNet python package. Advances in Engineering Software, 149, 102884. https://doi.org/10.1016/j.advengsoft.2020.102884
+
+Please cite that paper if you use this work in research. Contact: tsnetts@gmail.com

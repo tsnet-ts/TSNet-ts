@@ -47,6 +47,7 @@ main {
 }
 h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 1rem; }
 h2 { font-size: 1.2rem; margin: 1.75rem 0 0.6rem; }
+h3 { font-size: 1.05rem; margin: 1.25rem 0 0.4rem; color: var(--fg); }
 p, li { color: var(--muted); }
 ul { padding-left: 1.2rem; }
 .cta {

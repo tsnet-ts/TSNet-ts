@@ -278,6 +278,13 @@ export function FileUpload() {
                 >
                   About
                 </a>
+                {' · '}
+                <a
+                  href={publicUrl('llms.txt')}
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-indigo-600"
+                >
+                  llms.txt
+                </a>
               </p>
             </footer>
           </main>

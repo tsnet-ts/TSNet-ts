@@ -11,6 +11,8 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://tsnet-ts.github.io/TSNet-ts/water-hammer.html" />
     <link rel="sitemap" type="application/xml" href="https://tsnet-ts.github.io/TSNet-ts/sitemap.xml" />
+    <link rel="sitemap" type="text/plain" href="https://tsnet-ts.github.io/TSNet-ts/sitemap.txt" />
+    <link rel="alternate" type="text/plain" title="llms.txt" href="https://tsnet-ts.github.io/TSNet-ts/llms.txt" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./docs.css" />
     <meta property="og:type" content="article" />
@@ -21,6 +23,66 @@
     />
     <meta property="og:url" content="https://tsnet-ts.github.io/TSNet-ts/water-hammer.html" />
     <meta property="og:image" content="https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Water hammer and hydraulic transient simulation",
+        "description": "What water hammer is, how the Method of Characteristics (MOC) simulates pressure surge, and how to run online transient simulation on EPANET .inp files in TSNet-TS.",
+        "url": "https://tsnet-ts.github.io/TSNet-ts/water-hammer.html",
+        "image": "https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg",
+        "author": { "@type": "Organization", "name": "tsnet-ts", "url": "https://github.com/tsnet-ts" },
+        "publisher": { "@type": "Organization", "name": "tsnet-ts", "url": "https://github.com/tsnet-ts" }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is water hammer?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Water hammer is a pressure surge in a pressurized pipeline when flow changes suddenly, such as a fast valve closure, pump trip, or pipe burst. It is a type of hydraulic transient."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I run water transient simulation in the browser?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. TSNet-TS runs Method of Characteristics (MOC) transient simulation in your browser. Upload an EPANET .inp file or try an example network — no server-side solver is required for the demo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does TSNet-TS support EPANET .inp files?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. TSNet-TS loads EPANET water distribution network models (.inp) and simulates valve closure, pump trip, pipe burst, leaks, demand pulse, and surge tanks."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is the difference between DD and PDD?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "DD (demand-driven) assumes junctions take their full assigned demand. PDD (pressure-dependent demand) reduces demand when pressure is low, which is more realistic for leaks and bursts. Both use EPANET for the steady-state start."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is TSNet-TS free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The online demo is free for noncommercial use. The TypeScript engine is published as @tsnet-ts/ts-net on npm under the MIT license."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <header>
@@ -73,10 +135,41 @@
         <li>Pipe burst or background leak where pressure-dependent outflow matters</li>
         <li>Checking whether a surge tank reduces water-hammer peaks</li>
       </ul>
+
+      <h2>FAQ</h2>
+      <h3>What is water hammer?</h3>
+      <p>
+        Water hammer is a pressure surge in a pressurized pipeline when flow changes suddenly, such as a
+        fast valve closure, pump trip, or pipe burst. It is a type of hydraulic transient.
+      </p>
+      <h3>Can I run water transient simulation in the browser?</h3>
+      <p>
+        Yes. TSNet-TS runs Method of Characteristics (MOC) transient simulation in your browser. Upload
+        an EPANET <code>.inp</code> file or try an example network — no server-side solver is required
+        for the demo.
+      </p>
+      <h3>Does TSNet-TS support EPANET .inp files?</h3>
+      <p>
+        Yes. TSNet-TS loads EPANET water distribution network models (<code>.inp</code>) and simulates
+        valve closure, pump trip, pipe burst, leaks, demand pulse, and surge tanks.
+      </p>
+      <h3>What is the difference between DD and PDD?</h3>
+      <p>
+        DD (demand-driven) assumes junctions take their full assigned demand. PDD (pressure-dependent
+        demand) reduces demand when pressure is low, which is more realistic for leaks and bursts. Both
+        use EPANET for the steady-state start.
+      </p>
+      <h3>Is TSNet-TS free?</h3>
+      <p>
+        The online demo is free for noncommercial use. The TypeScript engine is published as
+        <a href="https://www.npmjs.com/package/@tsnet-ts/ts-net"><code>@tsnet-ts/ts-net</code></a>
+        on npm under the MIT license.
+      </p>
     </main>
     <footer>
       <p><a href="./">TSNet-TS simulator</a> · <a href="./about.html">About TSNet-TS</a></p>
       <p>Online water hammer and hydraulic transient simulation for EPANET water networks.</p>
+      <p>For AI crawlers: <a href="./llms.txt">llms.txt</a></p>
     </footer>
   </body>
 </html>

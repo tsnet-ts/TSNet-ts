@@ -11,6 +11,8 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://tsnet-ts.github.io/TSNet-ts/about.html" />
     <link rel="sitemap" type="application/xml" href="https://tsnet-ts.github.io/TSNet-ts/sitemap.xml" />
+    <link rel="sitemap" type="text/plain" href="https://tsnet-ts.github.io/TSNet-ts/sitemap.txt" />
+    <link rel="alternate" type="text/plain" title="llms.txt" href="https://tsnet-ts.github.io/TSNet-ts/llms.txt" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="stylesheet" href="./docs.css" />
     <meta property="og:type" content="website" />
@@ -21,6 +23,57 @@
     />
     <meta property="og:url" content="https://tsnet-ts.github.io/TSNet-ts/about.html" />
     <meta property="og:image" content="https://tsnet-ts.github.io/TSNet-ts/demo/demo-poster.jpg" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "TSNet-TS",
+            "alternateName": ["TSNet TS", "tsnet-ts"],
+            "url": "https://tsnet-ts.github.io/TSNet-ts/",
+            "description": "Online water hammer and hydraulic transient simulator using the Method of Characteristics (MOC) on EPANET .inp networks in the browser.",
+            "applicationCategory": "EngineeringApplication",
+            "operatingSystem": "Any",
+            "browserRequirements": "Requires JavaScript",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "license": "https://polyformproject.org/licenses/noncommercial/1.0.0/",
+            "codeRepository": "https://github.com/tsnet-ts/TSNet-ts",
+            "sameAs": [
+              "https://github.com/tsnet-ts/TSNet-ts",
+              "https://www.npmjs.com/package/@tsnet-ts/ts-net"
+            ],
+            "citation": { "@id": "https://doi.org/10.1016/j.advengsoft.2020.102884" }
+          },
+          {
+            "@type": "SoftwareSourceCode",
+            "name": "@tsnet-ts/ts-net",
+            "codeRepository": "https://github.com/tsnet-ts/TSNet-ts",
+            "programmingLanguage": "TypeScript",
+            "runtimePlatform": "JavaScript",
+            "license": "https://opensource.org/licenses/MIT",
+            "url": "https://www.npmjs.com/package/@tsnet-ts/ts-net"
+          },
+          {
+            "@type": "ScholarlyArticle",
+            "@id": "https://doi.org/10.1016/j.advengsoft.2020.102884",
+            "name": "Transient simulations in water distribution networks: TSNet python package",
+            "author": [
+              { "@type": "Person", "name": "Xing, L." },
+              { "@type": "Person", "name": "Sela, L." }
+            ],
+            "datePublished": "2020",
+            "isPartOf": {
+              "@type": "Periodical",
+              "name": "Advances in Engineering Software",
+              "volumeNumber": "149"
+            },
+            "identifier": "https://doi.org/10.1016/j.advengsoft.2020.102884",
+            "url": "https://doi.org/10.1016/j.advengsoft.2020.102884"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <header>
@@ -83,6 +136,7 @@
     </main>
     <footer>
       <p><a href="./">TSNet-TS simulator</a> · <a href="./water-hammer.html">Water hammer</a></p>
+      <p>For AI crawlers: <a href="./llms.txt">llms.txt</a></p>
     </footer>
   </body>
 </html>
