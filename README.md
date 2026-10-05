@@ -31,6 +31,9 @@ If you use this work, please cite the original TSNet paper:
 
 > Xing, L., & Sela, L. (2020). Transient simulations in water distribution networks: TSNet python package. *Advances in Engineering Software*, 149, 102884. https://doi.org/10.1016/j.advengsoft.2020.102884
 
+### Contact
+Questions, commercial licensing for the web app, or collaboration: [tsnetts@gmail.com](mailto:tsnetts@gmail.com)
+
 ## Getting started
 
 ```bash
