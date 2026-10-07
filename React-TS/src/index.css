@@ -99,6 +99,11 @@
   }
 }
 
+/* OSM fallback only: grayscale tiles; overlay (pipes/nodes) stays in color */
+.leaflet-container.map-basemap-mono .leaflet-tile-pane {
+  filter: grayscale(1) contrast(0.92) brightness(1.06);
+}
+
 /* Event label tooltips on map */
 .event-label-tooltip.leaflet-tooltip {
   background: rgba(255, 247, 237, 0.95);

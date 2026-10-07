@@ -80,6 +80,7 @@ export function UnifiedMap() {
   }, [network]);
 
   const isXYGrid = projection?.type === 'xy-grid';
+  const cartoKey = import.meta.env.VITE_MAP_API_KEY?.trim();
 
   if (!network || !bounds) return null;
 
@@ -87,7 +88,11 @@ export function UnifiedMap() {
     <div className="relative w-full h-full">
       <MapContainer
         bounds={bounds}
-        className="w-full h-full z-0"
+        className={
+          !isXYGrid && !cartoKey
+            ? 'map-basemap-mono w-full h-full z-0'
+            : 'w-full h-full z-0'
+        }
         zoomControl={true}
         attributionControl={!isXYGrid}
         style={isXYGrid ? { backgroundColor: '#f9fafb' } : undefined}
@@ -95,8 +100,16 @@ export function UnifiedMap() {
         {/* Tile layer only for GIS mode */}
         {!isXYGrid && (
           <TileLayer
-            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            attribution={
+              cartoKey
+                ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }
+            url={
+              cartoKey
+                ? `https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoKey)}`
+                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            }
           />
         )}
 

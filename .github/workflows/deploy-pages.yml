@@ -28,6 +28,7 @@ jobs:
         run: bun run --cwd React-TS build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_MAP_API_KEY: ${{ secrets.VITE_MAP_API_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

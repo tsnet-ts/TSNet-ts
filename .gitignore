@@ -39,6 +39,11 @@ TSNET-TS/examples/networks/**/*_hammer/
 *.hut
 *.rpc
 
+# Secrets (never commit API keys)
+.env
+.env.*
+!.env.example
+
 # Nested lockfiles (use root bun.lock only)
 React-TS/bun.lock
 React-TS/package-lock.json
