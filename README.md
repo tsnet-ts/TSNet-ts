@@ -6,11 +6,9 @@
 [![License: MIT (library)](https://img.shields.io/badge/license-MIT%20(library)-blue.svg)](./TSNET-TS/LICENSE)
 [![Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://tsnet-ts.github.io/TSNet-ts/)
 
-<!-- Optional: drop a demo screenshot at docs/demo.png, then uncomment:
-![TSNet-TS demo](docs/demo.png)
--->
+![TSNet-TS demo](docs/demo.mp4)
 
-**Try it live:** [tsnet-ts.github.io/TSNet-ts](https://tsnet-ts.github.io/TSNet-ts/) · **Install:** `npm install @tsnet-ts/ts-net`
+**Try it live:** [tsnet-ts.github.io/TSNet-ts](https://tsnet-ts.github.io/TSNet-ts/) · **Install:** [`npm install @tsnet-ts/ts-net`](https://www.npmjs.com/package/@tsnet-ts/ts-net)
 
 ### Features
 - Load EPANET `.inp` networks and run MOC transients (no server required for the demo)
