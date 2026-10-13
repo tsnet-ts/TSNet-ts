@@ -11,8 +11,9 @@ import { calc_parabola_vertex } from '../utils/calc-parabola-vertex.ts';
 import { print_time_delta } from '../utils/print-time-delta.ts';
 import type { TransientModel } from '../network/model.ts';
 import type { Pipe } from '../epanet-bridge.ts';
+import { fillSteadyInteriors } from './steady-interior.ts';
 
-export function MOCSimulator(tm: TransientModel, results_obj: string = 'results', friction: string = 'steady', onProgress?: (percent: number) => void): TransientModel {
+export function MOCSimulator(tm: TransientModel, results_obj: string = 'results', friction: string = 'steady', onProgress?: (percent: number) => void, outputEvery: number = 1): TransientModel {
     /**
      * MOC Main Function
      *
@@ -47,10 +48,30 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
     // determine which node of the adjacent pipe should be call:
     // if the adjacent pipe is entering the junction, then -2
     // if the adjacent pipe is leaving the junction, then 1
+    const every = Number.isInteger(outputEvery) && outputEvery > 1 ? outputEvery : 1;
     const a: { [key: number]: number } = { 1: -2, [-1]: 1 };
     const b: { [key: number]: number } = { 1: -1, [-1]: 0 };
-    // Python-style negative indexing helper
-    const pyAt = (arr: number[], idx: number): number => idx >= 0 ? arr[idx] : arr[arr.length + idx];
+    // Reused neighbor samples. Each slot stays live for one pipe call.
+    const nb: number[][] = Array.from({ length: 8 }, () => []);
+    const pull = (slot: number, links: number[], grid: number[][], sel: 'a' | 'b'): number[] => {
+        const buf = nb[slot];
+        buf.length = links.length;
+        for (let i = 0; i < links.length; i++) {
+            const id = links[i];
+            const sign = Math.sign(id);
+            const arr = grid[Math.abs(id) - 1];
+            const idx = sel === 'a' ? a[sign] : b[sign];
+            buf[i] = idx >= 0 ? arr[idx] : arr[arr.length + idx];
+        }
+        return buf;
+    };
+    const warned = new Set<string>();
+    const warnNeg = (name: string, message: string) => {
+        const key = name + '\0' + message;
+        if (warned.has(key)) return;
+        warned.add(key);
+        console.warn(message);
+    };
     // generate a list of pipe
     const p: Pipe[] = [];
     // results from last time step
@@ -81,6 +102,8 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
             dVdt[pn] = new Array(V[pn].length).fill(0);
             dVdx[pn] = new Array(V[pn].length - 1).fill(0);
         }
+        HN[pn] = new Array(H[pn].length).fill(0);
+        VN[pn] = new Array(V[pn].length).fill(0);
     }
 
     for (const [, node] of tm.nodes()) {
@@ -144,11 +167,14 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
             }
         }
 
-        // initialize the results at this time step
-        for (const [, pipe] of tm.pipes()) {
-            const pn = pipe.id - 1;
-            HN[pn] = new Array(H[pn].length).fill(0);
-            VN[pn] = new Array(V[pn].length).fill(0);
+        // Reuse the write buffers from the previous step. fill(0) matches the old fresh arrays.
+        let skipInterior = false;
+        for (let pn = 0; pn < tm.num_pipes; pn++) {
+            HN[pn].fill(0);
+            VN[pn].fill(0);
+        }
+        if (friction === 'steady') {
+            skipInterior = fillSteadyInteriors(p, H, V, HN, VN, dt);
         }
 
         for (const [, pipe] of tm.pipes()) {
@@ -224,15 +250,16 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                 const [hn, vn] = inner_pipe(pipe, pn, dt,
                     links1[pn] as number[], links2[pn] as number[], utype[pn] as [string, number | string], dtype[pn] as [string, number | string], p,
                     H[pn], V[pn], HN[pn], VN[pn],
-                    (links1[pn] as number[]).map(i => pyAt(H[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links1[pn] as number[]).map(i => pyAt(V[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links2[pn] as number[]).map(i => pyAt(H[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links2[pn] as number[]).map(i => pyAt(V[Math.abs(i) - 1], a[Math.sign(i)])),
+                    pull(0, links1[pn] as number[], H, 'a'),
+                    pull(1, links1[pn] as number[], V, 'a'),
+                    pull(2, links2[pn] as number[], H, 'a'),
+                    pull(3, links2[pn] as number[], V, 'a'),
                     pump, valve, friction, dVdt[pn], dVdx[pn],
-                    (links1[pn] as number[]).map(i => pyAt(dVdt[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links1[pn] as number[]).map(i => pyAt(dVdx[Math.abs(i) - 1], b[Math.sign(i)])),
-                    (links2[pn] as number[]).map(i => pyAt(dVdt[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links2[pn] as number[]).map(i => pyAt(dVdx[Math.abs(i) - 1], b[Math.sign(i)])));
+                    pull(4, links1[pn] as number[], dVdt, 'a'),
+                    pull(5, links1[pn] as number[], dVdx, 'b'),
+                    pull(6, links2[pn] as number[], dVdt, 'a'),
+                    pull(7, links2[pn] as number[], dVdx, 'b'),
+                    skipInterior);
                 HN[pn] = hn;
                 VN[pn] = vn;
                 // record results
@@ -251,7 +278,7 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                     } else { // assume reverse flow preventer installed
                         pipe.start_node.emitter_discharge[ts] = 0.;
                         pipe.start_node.demand_discharge[ts] = 0.;
-                        console.warn(`Negative pressure on node ${pipe.start_node.name}. Backflow stopped by reverse flow preventer.`);
+                        warnNeg(pipe.start_node.name, `Negative pressure on node ${pipe.start_node.name}. Backflow stopped by reverse flow preventer.`);
                     }
                 }
 
@@ -263,7 +290,7 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                     } else { // assume reverse flow preventer installed
                         pipe.end_node.emitter_discharge[ts] = 0.;
                         pipe.end_node.demand_discharge[ts] = 0.;
-                        console.warn(`Negative pressure on node ${pipe.start_node.name} Backflow stopped by reverse flow preventer.`);
+                        warnNeg(pipe.start_node.name, `Negative pressure on node ${pipe.start_node.name} Backflow stopped by reverse flow preventer.`);
                     }
                 }
 
@@ -342,12 +369,13 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                 const [hn, vn] = left_boundary(pipe, pn,
                     HN[pn], VN[pn], H[pn], V[pn],
                     links2[pn] as number[], p, pump, valve, dt,
-                    (links2[pn] as number[]).map(i => pyAt(H[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links2[pn] as number[]).map(i => pyAt(V[Math.abs(i) - 1], a[Math.sign(i)])),
+                    pull(0, links2[pn] as number[], H, 'a'),
+                    pull(1, links2[pn] as number[], V, 'a'),
                     utype[pn] as [string, number | string], dtype[pn] as [string, number | string],
                     friction, dVdt[pn], dVdx[pn],
-                    (links2[pn] as number[]).map(i => pyAt(dVdt[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links2[pn] as number[]).map(i => pyAt(dVdx[Math.abs(i) - 1], b[Math.sign(i)])));
+                    pull(2, links2[pn] as number[], dVdt, 'a'),
+                    pull(3, links2[pn] as number[], dVdx, 'b'),
+                    skipInterior);
                 HN[pn] = hn;
                 VN[pn] = vn;
                 // record results
@@ -366,7 +394,7 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                     } else { // assume reverse flow preventer installed
                         pipe.start_node.emitter_discharge[ts] = 0.;
                         pipe.start_node.demand_discharge[ts] = 0.;
-                        console.warn(`Negative pressure on node ${pipe.start_node.name}.\
+                        warnNeg(pipe.start_node.name, `Negative pressure on node ${pipe.start_node.name}.\
                         Backflow stopped by reverse flow preventer.`);
                     }
                 } catch {
@@ -381,7 +409,7 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                     } else { // assume reverse flow preventer installed
                         pipe.end_node.emitter_discharge[ts] = 0.;
                         pipe.end_node.demand_discharge[ts] = 0.;
-                        console.warn(`Negative pressure on node ${pipe.start_node.name}.\
+                        warnNeg(pipe.start_node.name, `Negative pressure on node ${pipe.start_node.name}.\
                             Backflow stopped by reverse flow preventer.`);
                     }
                 } catch {
@@ -455,12 +483,13 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                 const [hn, vn] = right_boundary(pipe, pn,
                     H[pn], V[pn], HN[pn], VN[pn],
                     links1[pn] as number[], p, pump, valve, dt,
-                    (links1[pn] as number[]).map(i => pyAt(H[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links1[pn] as number[]).map(i => pyAt(V[Math.abs(i) - 1], a[Math.sign(i)])),
+                    pull(0, links1[pn] as number[], H, 'a'),
+                    pull(1, links1[pn] as number[], V, 'a'),
                     utype[pn] as [string, number | string], dtype[pn] as [string, number | string],
                     friction, dVdt[pn], dVdx[pn],
-                    (links1[pn] as number[]).map(i => pyAt(dVdt[Math.abs(i) - 1], a[Math.sign(i)])),
-                    (links1[pn] as number[]).map(i => pyAt(dVdx[Math.abs(i) - 1], b[Math.sign(i)])));
+                    pull(2, links1[pn] as number[], dVdt, 'a'),
+                    pull(3, links1[pn] as number[], dVdx, 'b'),
+                    skipInterior);
                 HN[pn] = hn;
                 VN[pn] = vn;
                 // record results
@@ -479,7 +508,7 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                     } else { // assume reverse flow preventer installed
                         pipe.start_node.emitter_discharge[ts] = 0.;
                         pipe.start_node.demand_discharge[ts] = 0.;
-                        console.warn(`Negative pressure on node ${pipe.start_node.name}.\
+                        warnNeg(pipe.start_node.name, `Negative pressure on node ${pipe.start_node.name}.\
                         Backflow stopped by reverse flow preventer.`);
                     }
                 } catch {
@@ -494,7 +523,7 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                     } else { // assume reverse flow preventer installed
                         pipe.end_node.emitter_discharge[ts] = 0.;
                         pipe.end_node.demand_discharge[ts] = 0.;
-                        console.warn(`Negative pressure on node ${pipe.start_node.name}.\
+                        warnNeg(pipe.start_node.name, `Negative pressure on node ${pipe.start_node.name}.\
                             Backflow stopped by reverse flow preventer.`);
                     }
                 } catch {
@@ -509,11 +538,20 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
             // calculate instantaneous local acceleration
             // only for unsteady friction factor
             if (friction === 'unsteady') {
-                dVdt[pn] = VN[pn].map((v, i) => (v - V[pn][i]) / dt);
-                dVdx[pn] = V[pn].slice(1).map((v, i) => (v - V[pn][i]) / (pipe.length / pipe.number_of_segments));
+                const vel = V[pn];
+                const velN = VN[pn];
+                const acc = dVdt[pn];
+                for (let i = 0; i < velN.length; i++) acc[i] = (velN[i] - vel[i]) / dt;
+                const dx = pipe.length / pipe.number_of_segments;
+                const conv = dVdx[pn];
+                for (let i = 0; i < vel.length - 1; i++) conv[i] = (vel[i + 1] - vel[i]) / dx;
             }
+            const hPrev = H[pn];
             H[pn] = HN[pn];
+            HN[pn] = hPrev;
+            const vPrev = V[pn];
             V[pn] = VN[pn];
+            VN[pn] = vPrev;
         }
 
         for (const [, node] of tm.nodes()) {
@@ -523,6 +561,30 @@ export function MOCSimulator(tm: TransientModel, results_obj: string = 'results'
                 node.water_level_timeseries[ts] = Math.max(node.water_level, 0);
                 node.tank_flow_timeseries[ts] = node.tank_flow;
             }
+        }
+    }
+
+    if (every > 1) {
+        const thin = (arr: number[] | undefined) => {
+            if (!arr) return;
+            let w = 0;
+            for (let i = 0; i < arr.length; i += every) arr[w++] = arr[i];
+            arr.length = w;
+        };
+        thin(tt);
+        for (const [, pipe] of tm.pipes()) {
+            thin(pipe.start_node_head);
+            thin(pipe.end_node_head);
+            thin(pipe.start_node_velocity);
+            thin(pipe.end_node_velocity);
+            thin(pipe.start_node_flowrate);
+            thin(pipe.end_node_flowrate);
+        }
+        for (const [, node] of tm.nodes()) {
+            thin(node.demand_discharge);
+            thin(node.emitter_discharge);
+            thin(node.water_level_timeseries);
+            thin(node.tank_flow_timeseries);
         }
     }
 

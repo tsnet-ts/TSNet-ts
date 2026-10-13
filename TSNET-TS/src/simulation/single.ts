@@ -8,9 +8,9 @@
 
 import type { Pipe } from '../epanet-bridge.ts';
 import {
-    inner_node_steady,
-    inner_node_quasisteady,
-    inner_node_unsteady,
+    inner_node_steady_into,
+    inner_node_quasisteady_into,
+    inner_node_unsteady_into,
     valve_node,
     pump_node,
     source_pump,
@@ -21,6 +21,24 @@ import {
     surge_tank,
     air_chamber
 } from './solver.ts';
+
+function writeInterior(
+    friction: string,
+    linkp: Pipe,
+    H0: number[], V0: number[], H: number[], V: number[],
+    dt: number, g: number,
+    dVdt: number[], dVdx: number[],
+    skipInterior: boolean,
+): void {
+    if (skipInterior) return;
+    if (friction === 'steady') {
+        inner_node_steady_into(linkp, H0, V0, dt, g, H, V);
+    } else if (friction === 'quasi-steady') {
+        inner_node_quasisteady_into(linkp, H0, V0, dt, g, H, V);
+    } else {
+        inner_node_unsteady_into(linkp, H0, V0, dt, g, dVdx, dVdt, H, V);
+    }
+}
 
 export function inner_pipe(
     linkp: Pipe, pn: number, dt: number,
@@ -33,7 +51,8 @@ export function inner_pipe(
     pump: [unknown[], unknown[]], valve: [number, number],
     friction: string, dVdt: number[], dVdx: number[],
     dVdt10: number[], dVdx10: number[],
-    dVdt20: number[], dVdx20: number[]
+    dVdt20: number[], dVdx20: number[],
+    skipInterior: boolean = false,
 ): [number[], number[]] {
     /**
      * MOC solution for an individual inner pipe.
@@ -45,19 +64,7 @@ export function inner_pipe(
     const link2 = links2.map(i => p[Math.abs(i) - 1]);
     const n = linkp.number_of_segments;    // spatial discretization
 
-    // inner nodes
-    if (friction === 'steady') {
-        [H.splice(1, n - 1, ...inner_node_steady(linkp, H0, V0, dt, g)[0]),
-         V.splice(1, n - 1, ...inner_node_steady(linkp, H0, V0, dt, g)[1])];
-        const [HP, VP] = inner_node_steady(linkp, H0, V0, dt, g);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    } else if (friction === 'quasi-steady') {
-        const [HP, VP] = inner_node_quasisteady(linkp, H0, V0, dt, g);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    } else {
-        const [HP, VP] = inner_node_unsteady(linkp, H0, V0, dt, g, dVdx, dVdt);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    }
+    writeInterior(friction, linkp, H0, V0, H, V, dt, g, dVdt, dVdx, skipInterior);
 
     // Pipe start
     let V1: number | number[] = V10;
@@ -166,7 +173,8 @@ export function left_boundary(
     H20: number[], V20: number[],
     utype: [string, number | string], dtype: [string, number | string],
     friction: string, dVdt: number[], dVdx: number[],
-    dVdt20: number[], dVdx20: number[]
+    dVdt20: number[], dVdx20: number[],
+    skipInterior: boolean = false,
 ): [number[], number[]] {
     /**
      * MOC solution for an individual left boundary pipe.
@@ -181,17 +189,7 @@ export function left_boundary(
     const n = linkp.number_of_segments;   // spatial discretization
     const KD = linkp.roughness_height;
 
-    // inner nodes
-    if (friction === 'steady') {
-        const [HP, VP] = inner_node_steady(linkp, H0, V0, dt, g);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    } else if (friction === 'quasi-steady') {
-        const [HP, VP] = inner_node_quasisteady(linkp, H0, V0, dt, g);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    } else {
-        const [HP, VP] = inner_node_unsteady(linkp, H0, V0, dt, g, dVdx, dVdt);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    }
+    writeInterior(friction, linkp, H0, V0, H, V, dt, g, dVdt, dVdx, skipInterior);
 
     // Pipe start (outer boundary conditions)
     const V2_start = V0[1];
@@ -290,7 +288,8 @@ export function right_boundary(
     H10: number[], V10: number[],
     utype: [string, number | string], dtype: [string, number | string],
     friction: string, dVdt: number[], dVdx: number[],
-    dVdt10: number[], dVdx10: number[]
+    dVdt10: number[], dVdx10: number[],
+    skipInterior: boolean = false,
 ): [number[], number[]] {
     /**
      * MOC solution for an individual right boundary pipe.
@@ -305,17 +304,7 @@ export function right_boundary(
     const n = linkp.number_of_segments;   // spatial discretization
     const KD = linkp.roughness_height;
 
-    // inner nodes
-    if (friction === 'steady') {
-        const [HP, VP] = inner_node_steady(linkp, H0, V0, dt, g);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    } else if (friction === 'quasi-steady') {
-        const [HP, VP] = inner_node_quasisteady(linkp, H0, V0, dt, g);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    } else {
-        const [HP, VP] = inner_node_unsteady(linkp, H0, V0, dt, g, dVdx, dVdt);
-        for (let i = 0; i < HP.length; i++) { H[i + 1] = HP[i]; V[i + 1] = VP[i]; }
-    }
+    writeInterior(friction, linkp, H0, V0, H, V, dt, g, dVdt, dVdx, skipInterior);
 
     // Pipe start (inner boundary conditions)
     const V1_start: number | number[] = V10;

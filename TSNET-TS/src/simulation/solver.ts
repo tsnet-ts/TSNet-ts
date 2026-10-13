@@ -205,28 +205,26 @@ export function cal_Cs(
     return [A1, A2, C1, C2];
 }
 
-export function inner_node_unsteady(link: Pipe, H0: number[], V0: number[], dt: number, g: number,
-    dVdx: number[], dVdt: number[]): [number[], number[]] {
-    /**
-     * Inner boundary MOC using C+ and C- characteristic curve with unsteady friction
-     */
-    const HP = new Array(H0.length).fill(0);
-    const VP = new Array(V0.length).fill(0);
-    // property of current pipe
-    let f = link.roughness;     // unitless
-    const D = link.diameter;      // m
-    const a = link.wavev;        // m/s
+/** Write interior nodes of an unsteady pipe into Hout/Vout. Endpoints are left unchanged. */
+export function inner_node_unsteady_into(
+    link: Pipe, H0: number[], V0: number[], dt: number, g: number,
+    dVdx: number[], dVdt: number[], Hout: number[], Vout: number[],
+): void {
+    let f = link.roughness;
+    const D = link.diameter;
+    const a = link.wavev;
     const theta = link.theta;
     const KD = link.roughness_height;
     const ga = g / a;
+    const gadt = ga * dt;
     const tol = 1e-1;
+    const twoGa = 2 * ga;
 
     for (let i = 1; i < H0.length - 1; i++) {
         const V1 = V0[i - 1]; const H1 = H0[i - 1];
         const V2 = V0[i + 1]; const H2 = H0[i + 1];
         const dVdx1 = dVdx[i - 1]; const dVdx2 = dVdx[i];
         const dVdt1 = dVdt[i - 1]; const dVdt2 = dVdt[i + 1];
-        const C = [[0], [0]];
 
         let Re = Reynold(V1, D);
         let Js: number;
@@ -238,7 +236,7 @@ export function inner_node_unsteady(link: Pipe, H0: number[], V0: number[], dt: 
         }
         let Ju = unsteady_friction(Re, dVdt1, dVdx1, V1, a, g);
         const J1 = Js + Ju;
-        C[0][0] = V1 + ga * H1 - J1 + ga * dt * V1 * theta;
+        const Cp = V1 + ga * H1 - J1 + gadt * V1 * theta;
 
         Re = Reynold(V2, D);
         if (Re < tol) {
@@ -249,33 +247,42 @@ export function inner_node_unsteady(link: Pipe, H0: number[], V0: number[], dt: 
         }
         Ju = unsteady_friction(Re, dVdt2, dVdx2, V2, a, g);
         const J2 = Js + Ju;
-        C[1][0] = -V2 + ga * H2 + J2 + ga * dt * V2 * theta;
+        const Cm = -V2 + ga * H2 + J2 + gadt * V2 * theta;
 
-        HP[i] = (C[0][0] + C[1][0]) / 2. / ga;
-        VP[i] = -C[1][0] + ga * HP[i];
+        const hp = (Cp + Cm) / twoGa;
+        Hout[i] = hp;
+        Vout[i] = -Cm + ga * hp;
     }
-
-    return [HP.slice(1, -1), VP.slice(1, -1)];
 }
 
-export function inner_node_quasisteady(link: Pipe, H0: number[], V0: number[], dt: number, g: number): [number[], number[]] {
+export function inner_node_unsteady(link: Pipe, H0: number[], V0: number[], dt: number, g: number,
+    dVdx: number[], dVdt: number[]): [number[], number[]] {
     /**
-     * Inner boundary MOC using C+ and C- characteristic curve with quasi-steady friction
+     * Inner boundary MOC using C+ and C- characteristic curve with unsteady friction
      */
     const HP = new Array(H0.length).fill(0);
     const VP = new Array(V0.length).fill(0);
-    // property of current pipe
-    const D = link.diameter;      // m
-    const a = link.wavev;        // m/s
+    inner_node_unsteady_into(link, H0, V0, dt, g, dVdx, dVdt, HP, VP);
+    return [HP.slice(1, -1), VP.slice(1, -1)];
+}
+
+/** Write interior nodes of a quasi-steady pipe into Hout/Vout. Endpoints are left unchanged. */
+export function inner_node_quasisteady_into(
+    link: Pipe, H0: number[], V0: number[], dt: number, g: number,
+    Hout: number[], Vout: number[],
+): void {
+    const D = link.diameter;
+    const a = link.wavev;
     const theta = link.theta;
     const KD = link.roughness_height;
     const ga = g / a;
+    const gadt = ga * dt;
     const tol = 1e-1;
+    const twoGa = 2 * ga;
 
     for (let i = 1; i < H0.length - 1; i++) {
         const V1 = V0[i - 1]; const H1 = H0[i - 1];
         const V2 = V0[i + 1]; const H2 = H0[i + 1];
-        const C = [[0], [0]];
 
         let Re = Reynold(V1, D);
         let J1: number;
@@ -295,14 +302,49 @@ export function inner_node_quasisteady(link: Pipe, H0: number[], V0: number[], d
             J2 = f * dt / 2. / D * V2 * Math.abs(V2);
         }
 
-        C[0][0] = V1 + ga * H1 - J1 + ga * dt * V1 * theta;
-        C[1][0] = -V2 + ga * H2 + J2 + ga * dt * V2 * theta;
-
-        HP[i] = (C[0][0] + C[1][0]) / 2. / ga;
-        VP[i] = -C[1][0] + ga * HP[i];
+        const Cp = V1 + ga * H1 - J1 + gadt * V1 * theta;
+        const Cm = -V2 + ga * H2 + J2 + gadt * V2 * theta;
+        const hp = (Cp + Cm) / twoGa;
+        Hout[i] = hp;
+        Vout[i] = -Cm + ga * hp;
     }
+}
 
+export function inner_node_quasisteady(link: Pipe, H0: number[], V0: number[], dt: number, g: number): [number[], number[]] {
+    /**
+     * Inner boundary MOC using C+ and C- characteristic curve with quasi-steady friction
+     */
+    const HP = new Array(H0.length).fill(0);
+    const VP = new Array(V0.length).fill(0);
+    inner_node_quasisteady_into(link, H0, V0, dt, g, HP, VP);
     return [HP.slice(1, -1), VP.slice(1, -1)];
+}
+
+/** Write interior nodes of a steady-friction pipe into Hout/Vout. Endpoints are left unchanged. */
+export function inner_node_steady_into(
+    link: Pipe, H0: number[], V0: number[], dt: number, g: number,
+    Hout: number[], Vout: number[],
+): void {
+    const f = link.roughness;
+    const D = link.diameter;
+    const a = link.wavev;
+    const theta = link.theta;
+    const ga = g / a;
+    const coef = f * dt / 2 / D;
+    const gadt = ga * dt;
+    const twoGa = ga + ga;
+
+    for (let i = 1; i < H0.length - 1; i++) {
+        const V1 = V0[i - 1]; const H1 = H0[i - 1];
+        const V2 = V0[i + 1]; const H2 = H0[i + 1];
+        const J1 = coef * V1 * Math.abs(V1);
+        const Cp = V1 + ga * H1 - J1 + gadt * V1 * theta;
+        const J2 = coef * V2 * Math.abs(V2);
+        const Cm = -V2 + ga * H2 + J2 + gadt * V2 * theta;
+        const hp = (Cp + Cm) / twoGa;
+        Hout[i] = hp;
+        Vout[i] = -Cm + ga * hp;
+    }
 }
 
 export function inner_node_steady(link: Pipe, H0: number[], V0: number[], dt: number, g: number): [number[], number[]] {
@@ -311,30 +353,7 @@ export function inner_node_steady(link: Pipe, H0: number[], V0: number[], dt: nu
      */
     const HP = new Array(H0.length).fill(0);
     const VP = new Array(V0.length).fill(0);
-    // property of current pipe
-    const f = link.roughness;     // unitless
-    const D = link.diameter;      // m
-    const a = link.wavev;        // m/s
-    const theta = link.theta;
-    const ga = g / a;
-
-    for (let i = 1; i < H0.length - 1; i++) {
-        const V1 = V0[i - 1]; const H1 = H0[i - 1];
-        const V2 = V0[i + 1]; const H2 = H0[i + 1];
-        const C = [[0, 0], [0, 0]];
-
-        const J1 = f * dt / 2. / D * V1 * Math.abs(V1);
-        C[0][0] = V1 + ga * H1 - J1 + ga * dt * V1 * theta;
-        C[0][1] = ga;
-
-        const J2 = f * dt / 2. / D * V2 * Math.abs(V2);
-        C[1][0] = -V2 + ga * H2 + J2 + ga * dt * V2 * theta;
-        C[1][1] = ga;
-
-        HP[i] = (C[0][0] + C[1][0]) / (C[0][1] + C[1][1]);
-        VP[i] = -C[1][0] + C[1][1] * HP[i];
-    }
-
+    inner_node_steady_into(link, H0, V0, dt, g, HP, VP);
     return [HP.slice(1, -1), VP.slice(1, -1)];
 }
 
