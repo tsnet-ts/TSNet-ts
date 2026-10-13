@@ -6,7 +6,9 @@
 [![License: MIT (library)](https://img.shields.io/badge/license-MIT%20(library)-blue.svg)](./TSNET-TS/LICENSE)
 [![Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://tsnet-ts.github.io/TSNet-ts/)
 
-[![TSNet-TS demo](docs/demo.jpg)](docs/demo.mp4)
+![TSNet-TS demo](docs/demo.gif)
+
+Full clip: [docs/demo.mp4](docs/demo.mp4)
 
 **Try it live:** [tsnet-ts.github.io/TSNet-ts](https://tsnet-ts.github.io/TSNet-ts/) · **Install:** [`npm install @tsnet-ts/ts-net`](https://www.npmjs.com/package/@tsnet-ts/ts-net)
 
